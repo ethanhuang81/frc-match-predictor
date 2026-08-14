@@ -1,2 +1,8 @@
 streamlit>=1.32
 statbotics>=3.0.0
+
+# Pinned below urllib3 v2, which dropped support for LibreSSL. macOS's
+# system/Command-Line-Tools Python links against LibreSSL, not OpenSSL, so
+# urllib3>=2 breaks every HTTPS request there with a confusing error.
+# See: https://github.com/urllib3/urllib3/issues/3020
+urllib3<2
