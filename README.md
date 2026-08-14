@@ -44,6 +44,19 @@ That prints the raw dict Statbotics returns for team 254. Find the EPA
 field in there and add/reorder it in `_extract_epa()`. Should be a
 one-line fix.
 
+## A year-availability caveat
+
+If you get `Team X has no data for <year>: Invalid query`, the year
+itself is the problem, not the team -- the calendar year isn't always
+the most recent year Statbotics actually has EPA data for (a season can
+end before that year's data is fully published, or the installed
+package version can lag). `app.py` now defaults the year picker to
+whatever `get_latest_year()` in `epa_client.py` reports as Statbotics'
+actual latest year, instead of assuming it matches today's date. If you
+still hit this error, run `python epa_client.py` -- it prints the latest
+year Statbotics reports before trying to fetch data, which tells you
+whether the year itself is the issue.
+
 ## Calibrating the win probability curve
 
 `predictor.py` has a `SCALE` constant that controls how sharply an EPA

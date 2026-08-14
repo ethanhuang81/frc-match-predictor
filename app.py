@@ -13,7 +13,7 @@ import datetime
 
 import streamlit as st
 
-from epa_client import TeamEpaError, get_team_epa, get_team_name
+from epa_client import TeamEpaError, get_latest_year, get_team_epa, get_team_name
 from predictor import win_probability
 
 CURRENT_YEAR = datetime.date.today().year
@@ -28,7 +28,19 @@ st.set_page_config(page_title="FRC Strategy Analyzer", page_icon="\U0001F916")
 st.title("FRC Strategy Analyzer")
 st.caption("Predicts win probability for a 3-team alliance vs. another, using Statbotics EPA.")
 
-year = st.number_input("Season year", min_value=2002, max_value=CURRENT_YEAR, value=CURRENT_YEAR, step=1)
+
+@st.cache_data(ttl=CACHE_TTL_SECONDS, show_spinner=False)
+def cached_latest_year() -> int:
+    return get_latest_year(default=CURRENT_YEAR - 1)
+
+
+default_year = cached_latest_year()
+year = st.number_input("Season year", min_value=2002, max_value=CURRENT_YEAR, value=default_year, step=1)
+if year != CURRENT_YEAR:
+    st.caption(
+        f"Defaulted to {default_year} -- the most recent season Statbotics reports having data for. "
+        "Change it above if you want a different year."
+    )
 
 
 @st.cache_data(ttl=CACHE_TTL_SECONDS, show_spinner=False)

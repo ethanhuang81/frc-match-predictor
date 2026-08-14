@@ -73,12 +73,37 @@ def get_team_name(team_number: int) -> Optional[str]:
         return None
 
 
+def get_latest_year(default: int) -> int:
+    """
+    Best-effort lookup of the most recent year Statbotics actually has data
+    for -- rather than assuming it matches today's calendar year.
+
+    This matters because a season can be over on the calendar before
+    Statbotics has finished publishing that year's EPA data, and because
+    the installed `statbotics` package version can occasionally lag the
+    live API. If a query for a given year comes back as invalid, this is
+    the first thing to suspect (see README).
+
+    Falls back to `default` if the lookup itself fails for any reason.
+    """
+    try:
+        years = _sb.get_years(metric="year", ascending=False, limit=1, fields=["year"])
+        if years:
+            return int(years[0]["year"])
+    except Exception:
+        pass
+    return default
+
+
 if __name__ == "__main__":
-    # Quick manual check: `python epa_client.py` prints the raw response
-    # for team 254 so you can confirm _extract_epa() is reading the right
-    # field for the statbotics package version you have installed.
+    # Quick manual check: `python epa_client.py` prints (a) the latest year
+    # Statbotics reports having data for, and (b) the raw team_year response
+    # for team 254 in that year, so you can confirm _extract_epa() is
+    # reading the right field for the statbotics package version you have
+    # installed.
     import datetime
 
-    year = datetime.date.today().year
-    print(_sb.get_team_year(254, year))
-    print("Extracted EPA:", get_team_epa(254, year))
+    latest = get_latest_year(default=datetime.date.today().year - 1)
+    print("Latest year Statbotics reports:", latest)
+    print(_sb.get_team_year(254, latest))
+    print("Extracted EPA:", get_team_epa(254, latest))
