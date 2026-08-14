@@ -41,13 +41,22 @@ def cached_name(team: int) -> str | None:
     return get_team_name(team)
 
 
-def team_inputs(label: str, key_prefix: str) -> list[int]:
+def team_inputs(label: str, key_prefix: str) -> list[int | None]:
     st.subheader(label)
     cols = st.columns(3)
     teams = []
     for i, col in enumerate(cols):
         with col:
-            teams.append(int(st.number_input(f"Team {i + 1}", min_value=1, step=1, key=f"{key_prefix}_{i}")))
+            teams.append(
+                st.number_input(
+                    f"Team {i + 1}",
+                    min_value=1,
+                    step=1,
+                    value=None,
+                    placeholder="e.g. 254",
+                    key=f"{key_prefix}_{i}",
+                )
+            )
     return teams
 
 
@@ -55,6 +64,13 @@ red_teams = team_inputs("Red Alliance", "red")
 blue_teams = team_inputs("Blue Alliance", "blue")
 
 if st.button("Predict", type="primary"):
+    if any(t is None for t in red_teams + blue_teams):
+        st.warning("Enter all 6 team numbers first.")
+        st.stop()
+
+    red_teams = [int(t) for t in red_teams]
+    blue_teams = [int(t) for t in blue_teams]
+
     try:
         red_epas, blue_epas = [], []
 
