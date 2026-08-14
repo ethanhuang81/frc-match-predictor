@@ -96,14 +96,29 @@ def get_latest_year(default: int) -> int:
 
 
 if __name__ == "__main__":
-    # Quick manual check: `python epa_client.py` prints (a) the latest year
-    # Statbotics reports having data for, and (b) the raw team_year response
-    # for team 254 in that year, so you can confirm _extract_epa() is
-    # reading the right field for the statbotics package version you have
-    # installed.
-    import datetime
+    # Diagnostic script: `python epa_client.py`
+    #
+    # Runs a few independent calls and prints full tracebacks on failure,
+    # so we can see exactly which layer is broken instead of one flattened
+    # error message. Send me everything this prints.
+    import traceback
 
-    latest = get_latest_year(default=datetime.date.today().year - 1)
-    print("Latest year Statbotics reports:", latest)
-    print(_sb.get_team_year(254, latest))
-    print("Extracted EPA:", get_team_epa(254, latest))
+    print("statbotics package version:", getattr(statbotics, "__version__", "unknown"))
+
+    print("\n--- Test 1: get_team(254) -- simplest possible call, no year involved ---")
+    try:
+        print(_sb.get_team(254))
+    except Exception:
+        traceback.print_exc()
+
+    print("\n--- Test 2: get_years(limit=3) -- which years does Statbotics report? ---")
+    try:
+        print(_sb.get_years(limit=3, ascending=False))
+    except Exception:
+        traceback.print_exc()
+
+    print("\n--- Test 3: get_team_year(254, 2025) -- a known-past, definitely-real season ---")
+    try:
+        print(_sb.get_team_year(254, 2025))
+    except Exception:
+        traceback.print_exc()
